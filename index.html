@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>明☆英语单词卡</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23081020'/%3E%3Ctext x='16' y='22' font-size='16' font-family='monospace' fill='%2300e5ff' text-anchor='middle' font-weight='bold'%3EW%3C/text%3E%3C/svg%3E" />
+  <style>
+    :root{
+      --bg:#070b16;
+      --panel:rgba(14,22,40,.85);
+      --line:rgba(0,210,255,.28);
+      --line-strong:rgba(0,225,255,.7);
+      --text:#e8f6ff;
+      --muted:#7fa8c9;
+      --accent:#00e5ff;
+      --accent-2:#0090ff;
+      --warn:#ff9a3c;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    html,body{height:100%;}
+    body{
+      font-family:"SF Pro Display","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;align-items:center;justify-content:center;
+      padding:16px;
+      overflow-x:hidden;
+      position:relative;
+    }
+    /* 背景网格 */
+    body::before{
+      content:"";position:fixed;inset:0;
+      background-image:
+        linear-gradient(rgba(0,180,255,.05) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(0,180,255,.05) 1px,transparent 1px);
+      background-size:40px 40px;
+      pointer-events:none;
+    }
+    /* 背景光斑 */
+    body::after{
+      content:"";position:fixed;inset:0;
+      background:
+        radial-gradient(circle at 25% 20%,rgba(0,140,255,.18),transparent 45%),
+        radial-gradient(circle at 80% 85%,rgba(0,220,255,.12),transparent 45%);
+      pointer-events:none;
+    }
+    .stage{
+      width:100%;max-width:440px;
+      position:relative;z-index:1;
+    }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:40px 28px 32px;
+      box-shadow:
+        0 0 0 1px rgba(0,225,255,.06) inset,
+        0 0 30px rgba(0,180,255,.15),
+        0 20px 50px rgba(0,0,0,.5);
+      backdrop-filter:blur(12px);
+      position:relative;
+      overflow:hidden;
+    }
+    /* 顶部扫描线装饰 */
+    .card::before{
+      content:"";position:absolute;top:0;left:0;right:0;height:2px;
+      background:linear-gradient(90deg,transparent,var(--accent),transparent);
+      opacity:.8;
+    }
+    /* 四角标记 */
+    .corner{position:absolute;width:14px;height:14px;border-color:var(--accent-2);opacity:.7;}
+    .corner.tl{top:10px;left:10px;border-top:1px solid;border-left:1px solid;}
+    .corner.tr{top:10px;right:10px;border-top:1px solid;border-right:1px solid;}
+    .corner.bl{bottom:10px;left:10px;border-bottom:1px solid;border-left:1px solid;}
+    .corner.br{bottom:10px;right:10px;border-bottom:1px solid;border-right:1px solid;}
+    .tag{
+      display:inline-block;
+      font-size:11px;letter-spacing:3px;color:var(--accent);
+      border:1px solid var(--line);border-radius:4px;
+      padding:4px 10px;margin-bottom:16px;
+      text-transform:uppercase;
+    }
+
+    /* 新增：分组下拉 + 搜索框样式 */
+    .control-row{
+      display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;
+    }
+    .group-select{
+      flex:0 0 110px;
+      background:rgba(20,35,60,.6);
+      border:1px solid var(--line);
+      color:#bfe6ff;
+      border-radius:10px;
+      padding:10px 8px;
+      font-size:14px;
+      outline:none;
+    }
+    .group-select:focus{
+      border-color:var(--line-strong);
+      box-shadow:0 0 8px rgba(0,200,255,.25);
+    }
+    .search-input{
+      flex:1;
+      min-width:140px;
+      background:rgba(20,35,60,.6);
+      border:1px solid var(--line);
+      color:#bfe6ff;
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+    }
+    .search-input::placeholder{
+      color:rgba(127,168,201,0.6);
+    }
+    .search-input:focus{
+      border-color:var(--line-strong);
+      box-shadow:0 0 8px rgba(0,200,255,.25);
+    }
+    .search-hint{
+      font-size:12px;color:var(--muted);
+      text-align:left;margin-bottom:20px;min-height:16px;
+    }
+
+    .word{
+      font-size:64px;font-weight:800;
+      color:#fff;
+      text-shadow:0 0 18px rgba(0,225,255,.55);
+      letter-spacing:1px;
+      line-height:1.1;
+      margin-bottom:10px;
+      word-break:break-word;
+    }
+    .phonetic{
+      font-size:22px;color:var(--accent);
+      font-family:"Menlo","Consolas",monospace;
+      letter-spacing:1px;
+      margin-bottom:8px;
+    }
+    .meaning{
+      font-size:15px;color:var(--muted);
+      margin-bottom:32px;min-height:20px;
+    }
+    .speak-btn{
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      width:100%;
+      padding:15px;
+      border:none;border-radius:12px;
+      background:linear-gradient(135deg,var(--accent-2),var(--accent));
+      color:#fff;font-size:17px;font-weight:600;
+      cursor:pointer;
+      box-shadow:0 0 20px rgba(0,200,255,.35);
+      transition:transform .15s,box-shadow .15s;
+    }
+    .speak-btn:active{transform:scale(.97);box-shadow:0 0 10px rgba(0,200,255,.3);}
+    .speak-btn svg{width:22px;height:22px;}
+    .speak-btn.playing{
+      background:linear-gradient(135deg,#00c853,#69f0ae);
+      box-shadow:0 0 20px rgba(100,255,170,.4);
+    }
+    .speak-btn:disabled{opacity:0.35;cursor:not-allowed;}
+    .voice-tip{
+      margin-top:10px;font-size:12px;color:var(--warn);
+      min-height:16px;text-align:center;
+    }
+    .page-bar{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-top:28px;
+    }
+    .nav-btn{
+      flex:1;
+      padding:13px 0;
+      background:rgba(20,35,60,.6);
+      border:1px solid var(--line);
+      border-radius:10px;
+      color:#bfe6ff;font-size:15px;font-weight:500;
+      cursor:pointer;
+      transition:all .15s;
+      display:flex;align-items:center;justify-content:center;gap:6px;
+    }
+    .nav-btn svg{width:18px;height:18px;}
+    .nav-btn:not(:disabled):hover{
+      border-color:var(--line-strong);
+      background:rgba(0,100,180,.35);
+      box-shadow:0 0 12px rgba(0,200,255,.25);
+    }
+    .nav-btn:disabled{opacity:.3;cursor:not-allowed;}
+    .page-info{
+      flex:0 0 auto;
+      padding:0 18px;
+      font-size:14px;color:var(--muted);
+      font-family:"Menlo",monospace;
+      letter-spacing:1px;
+    }
+    /* 翻页动画 */
+    @keyframes slideIn{
+      from{opacity:0;transform:translateX(20px);}
+      to{opacity:1;transform:translateX(0);}
+    }
+    .card.animate{animation:slideIn .25s ease;}
+    @media (max-width:480px){
+      .card{padding:32px 20px 26px;}
+      .word{font-size:50px;}
+      .phonetic{font-size:19px;}
+      .control-row{gap:8px;}
+      .group-select{flex:0 0 95px;padding:8px 6px;font-size:13px;}
+      .search-input{padding:8px 10px;font-size:13px;}
+    }
+    @media (min-width:768px) and (max-width:1024px){
+      .stage{max-width:480px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="card" id="card">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <span class="tag">VOCABULARY</span>
+
+      <!-- 分组下拉 + 搜索 -->
+      <div class="control-row">
+        <select id="groupSelect" class="group-select"></select>
+        <input id="searchInput" class="search-input" placeholder="🔍模糊搜索单词..." />
+      </div>
+      <div class="search-hint" id="searchHint"></div>
+
+      <div class="word" id="word">cat</div>
+      <div class="phonetic" id="phonetic">/kæt/</div>
+      <div class="meaning" id="meaning"></div>
+      <button class="speak-btn" id="speakBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none" />
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+        </svg>
+        <span id="speakText">播放发音</span>
+      </button>
+      <div class="voice-tip" id="voiceTip"></div>
+      <div class="page-bar">
+        <button class="nav-btn" id="prevBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          上一页
+        </button>
+        <span class="page-info" id="pageInfo">1 / 8</span>
+        <button class="nav-btn" id="nextBtn">
+          下一页
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+<script>
+  // ============ 单词分组配置，在这里维护单元和单词 ============
+  const wordGroups = [
+    {
+      groupName:"单元1",
+      list:[
+        {word:"cat",      phonetic:"/kæt/",            meaning:"猫"},
+        {word:"cup",      phonetic:"/kʌp/",            meaning:"杯子"},
+        {word:"car",      phonetic:"/kɑː(r)/",         meaning:"汽车"},
+        {word:"computer", phonetic:"/kəmˈpjuːtə(r)/",  meaning:"电脑"}
+      ]
+    },
+    {
+      groupName:"单元2",
+      list:[
+        {word:"dog",      phonetic:"/dɒɡ/",            meaning:"狗"},
+        {word:"desk",     phonetic:"/desk/",           meaning:"书桌"},
+        {word:"doll",     phonetic:"/dɒl/",            meaning:"玩具娃娃"},
+        {word:"duck",     phonetic:"/dʌk/",            meaning:"鸭子"}
+      ]
+    },
+    {
+      groupName:"单元3",
+      list:[
+        {word:"pen",      phonetic:"/pen/",            meaning:"钢笔"},
+        {word:"book",     phonetic:"/bʊk/",            meaning:"书"},
+        {word:"bag",      phonetic:"/bæɡ/",            meaning:"书包"}
+      ]
+    }
+  ];
+  // ==========================================================
+
+  let activeGroupIndex = 0;
+  let filterList = []; // 当前筛选后展示的单词数组
+  let current = 0;
+
+  const $ = id => document.getElementById(id);
+  const wordEl = $("word"), phoneticEl = $("phonetic"), meaningEl = $("meaning");
+  const pageInfoEl = $("pageInfo"), speakBtn = $("speakBtn"), speakText = $("speakText");
+  const prevBtn = $("prevBtn"), nextBtn = $("nextBtn"), voiceTip = $("voiceTip");
+  const card = $("card");
+  const groupSelect = $("groupSelect");
+  const searchInput = $("searchInput");
+  const searchHint = $("searchHint");
+
+  // 初始化下拉选项
+  function initGroupSelect(){
+    groupSelect.innerHTML = "";
+    wordGroups.forEach((g,idx)=>{
+      const opt = document.createElement("option");
+      opt.value = idx;
+      opt.textContent = g.groupName;
+      groupSelect.appendChild(opt);
+    });
+  }
+
+  // 获取当前选中单元原始单词列表
+  function getCurrentGroupRawList(){
+    return wordGroups[activeGroupIndex].list;
+  }
+
+  // 根据搜索关键词做模糊过滤
+  function applyFilter(keyword){
+    const kw = keyword.trim().toLowerCase();
+    const raw = getCurrentGroupRawList();
+    if(!kw){
+      filterList = [...raw];
+      searchHint.textContent = `【${wordGroups[activeGroupIndex].groupName}】共${filterList.length}个单词`;
+    }else{
+      filterList = raw.filter(item => item.word.toLowerCase().includes(kw));
+      searchHint.textContent = `搜索「${keyword}」，找到 ${filterList.length} 个匹配`;
+    }
+    current = 0;
+    render();
+  }
+
+  function render(){
+    if(filterList.length === 0){
+      wordEl.textContent = "无匹配单词";
+      phoneticEl.textContent = "";
+      meaningEl.textContent = "";
+      pageInfoEl.textContent = "0 / 0";
+      speakBtn.disabled = true;
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      return;
+    }
+    speakBtn.disabled = false;
+    const item = filterList[current];
+    wordEl.textContent = item.word;
+    phoneticEl.textContent = item.phonetic;
+    meaningEl.textContent = item.meaning;
+    pageInfoEl.textContent = (current+1) + " / " + filterList.length;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === filterList.length - 1;
+    card.classList.remove("animate");
+    void card.offsetWidth;
+    card.classList.add("animate");
+  }
+
+  function setPlaying(on){
+    if(on){ speakBtn.classList.add("playing"); speakText.textContent = "正在朗读…"; }
+    else{ speakBtn.classList.remove("playing"); speakText.textContent = "播放发音"; }
+  }
+
+  // 方案一：在线发音音频（微信内置浏览器/手机也能出声）
+  function playOnline(){
+    return new Promise((resolve, reject) => {
+      const word = filterList[current].word;
+      const audio = new Audio("https://dict.youdao.com/dictvoice?audio=" + encodeURIComponent(word) + "&type=1");
+      audio.onended = () => { setPlaying(false); resolve(); };
+      audio.onerror = () => { setPlaying(false); reject(); };
+      audio.play().then(() => setPlaying(true)).catch(() => { setPlaying(false); reject(); });
+    });
+  }
+
+  // 方案二：系统语音合成（兜底）
+  function playTTS(){
+    if(!("speechSynthesis" in window)){
+      voiceTip.textContent = "当前环境无法播放声音";
+      return Promise.resolve();
+    }
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(filterList[current].word);
+    u.lang = "en-US";
+    u.rate = 0.85;
+    u.onstart = () => setPlaying(true);
+    u.onend = () => setPlaying(false);
+    u.onerror = () => setPlaying(false);
+    window.speechSynthesis.speak(u);
+    return Promise.resolve();
+  }
+
+  function speak(){
+    voiceTip.textContent = "";
+    if(filterList.length === 0) return;
+    playOnline().catch(() => playTTS());
+  }
+
+  // 事件绑定
+  speakBtn.addEventListener("click", speak);
+
+  prevBtn.addEventListener("click", () => {
+    if(current>0){ current--; render(); }
+  });
+  nextBtn.addEventListener("click", () => {
+    if(current < filterList.length-1){ current++; render(); }
+  });
+
+  // 切换单元下拉
+  groupSelect.addEventListener("change", function(){
+    activeGroupIndex = Number(this.value);
+    searchInput.value = ""; //切换单元清空搜索框
+    applyFilter("");
+  });
+
+  // 搜索输入
+  searchInput.addEventListener("input", function(){
+    applyFilter(this.value);
+  });
+
+  // 左右滑动切页（手机端）
+  let startX = null;
+  card.addEventListener("touchstart", e => startX = e.touches[0].clientX, {passive:true});
+  card.addEventListener("touchend", e => {
+    if(startX === null) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    if(Math.abs(dx) > 60){
+      if(dx < 0 && current < filterList.length-1){ current++; render(); }
+      else if(dx > 0 && current > 0){ current--; render(); }
+    }
+    startX = null;
+  }, {passive:true});
+
+  // 页面初始化
+  initGroupSelect();
+  applyFilter("");
+</script>
+</body>
+</html>
+<!-- （注：内容由AI生成） -->
