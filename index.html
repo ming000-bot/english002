@@ -140,14 +140,14 @@
       margin-bottom:8px;
     }
   .phonetic2{
-    position:relative;
-    top:463px;
-    left:180px;
-    font-size:16px;
-    color:rgba(255,255,255,0.2);
+    position:absolute;
+    right:30px;
+    bottom:10px;
+    font-size:12px;
+    color:rgba(255,255,255,0.22);
     font-family:"Menlo","Consolas",monospace;
     letter-spacing:1px;
-    margin-bottom:8px;
+    z-index:2;
   }
     .meaning{
       font-size:15px;color:var(--muted);
@@ -229,7 +229,7 @@
       <span class="corner tl"></span><span class="corner tr"></span>
       <span class="corner bl"></span><span class="corner br"></span>
       <span class="tag">VOCABULARY</span>
-      <span class="phonetic2">明☆制作</span>
+
 
       <!-- 分组下拉 + 搜索 -->
       <div class="control-row">
@@ -266,6 +266,7 @@
         </button>
       </div>
     </div>
+          <span class="phonetic2">明☆制作</span>
   </div>
 <script>
   // ============ 单词分组配置，在这里维护单元和单词 ============
